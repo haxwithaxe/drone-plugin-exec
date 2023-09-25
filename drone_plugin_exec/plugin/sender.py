@@ -27,10 +27,12 @@ class Client:
 
     def __enter__(self) -> 'Client':
         log.debug('Entering Client context')
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._sock.connect(
-            (self._config.address, self._config.port)
-        )
+        if self._config.address.startswith('unix://'):
+            self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            self._sock.connect(self._config.address[7:])
+        else:
+            self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._sock.connect((self._config.address, self._config.port))
         self._rfile = self._sock.makefile('rb')
         self._wfile = self._sock.makefile('wb')
 

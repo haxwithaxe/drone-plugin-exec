@@ -19,7 +19,7 @@ from ..script import Script, StdErr, StdOut
 
 
 class RequestHandler(socketserver.ForkingMixIn,
-                     socketserver.StreamRequestHandler):
+                         socketserver.StreamRequestHandler):
 
     def handle(self):
         self._config.tmp_path_root.mkdir(exist_ok=True)
@@ -128,12 +128,23 @@ class Server(socketserver.ForkingTCPServer):
 
 
 def serve_forever(config: TargetConfig):
-    log.info('Serving drone-exec-plugin target at %s:%s', config.address,
-             config.port)
-    with Server(
-        (config.address, config.port),
-        RequestHandler.factory(config)
-    ) as server:
-        log.debug('Serve forever at server.server_address: %s',
-                  server.server_address)
-        server.serve_forever()
+    if config.address.startswith('unix://'):
+        socket_path = pathlib.Path(config.address[7:])
+        if socket_path.exists():
+            socket_path.unlink()
+        log.info('Serving drone-exec-plugin target at %s', socket_path)
+        with socketserver.UnixStreamServer(
+            str(socket_path),
+            RequestHandler.factory(config)
+        ) as server:
+            server.serve_forever()
+    else:
+        log.info('Serving drone-exec-plugin target at %s:%s', config.address,
+                 config.port)
+        with Server(
+            (config.address, config.port),
+            RequestHandler.factory(config)
+        ) as server:
+            log.debug('Serve forever at server.server_address: %s',
+                      server.server_address)
+            server.serve_forever()
