@@ -1,0 +1,7 @@
+-e .
+flake8
+flake8-bugbear
+flake8-docstrings
+flake8-simplify
+isort
+pre-commit
