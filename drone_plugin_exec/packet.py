@@ -1,8 +1,10 @@
+"""Common packeization utilities."""
 
 import io
 import json
 import time
 from datetime import datetime
+from typing import Generator
 
 import nacl.public
 
@@ -13,17 +15,21 @@ _STOP_BUFFER = [chr(b).encode() for b in list(STOP_BYTES)]
 
 
 class Packetizeable:
+    """A base class for packetizable types."""
 
     def to_json(self):
+        """Return a json representation of this object."""
         return json.dumps(dict(self)).encode()
 
     def __iter__(self):
+        """Return an iterator ready to be turned into a `dict` for json."""
         copy = {k: getattr(self, k) for k in self.__dataclass_fields__.keys()}
         copy['type'] = self.__class__.__name__
         return iter(copy.items())
 
     @classmethod
     def isinstance(cls, other):
+        """Return `True` if `other` is a member, dehydrated or not."""
         if isinstance(other, cls):
             return True
         if isinstance(other, dict):
@@ -32,20 +38,24 @@ class Packetizeable:
 
 
 class EmptyPacket(Packetizeable):
+    """Represents an empty packet."""
 
     __dataclass_fields__ = {}
 
 
 class PacketTypes:
+    """A registry of packet types."""
 
     types: list[Packetizeable] = []
 
     @classmethod
     def register_packet_type(cls, new_type: Packetizeable):
+        """Register a new packet type."""
         cls.types.append(new_type)
 
 
 def packetize(wfile: io.BytesIO, box: nacl.public.Box, data: Packetizeable):
+    """Format and transmit a packet."""
     log.debug('packetize: data: %s', dict(data))
     data = data.to_json()
     data = box.encrypt(data)
@@ -55,7 +65,9 @@ def packetize(wfile: io.BytesIO, box: nacl.public.Box, data: Packetizeable):
     log.debug('sent bytes: %s', sent_bytes)
 
 
-def _readlines(rfile: io.BytesIO, box: nacl.public.Box, timeout: int = 60):
+def _read_until_ETB(rfile: io.BytesIO, box: nacl.public.Box, timeout: int = 60
+                    ) -> Generator[bytes, None, None]:
+    """Return a generator of decrypted bytes until the ETB is found."""
     start_time = datetime.now()
     while True:
         stop_buffer = []
@@ -76,9 +88,18 @@ def _readlines(rfile: io.BytesIO, box: nacl.public.Box, timeout: int = 60):
 
 def depacketize(rfile: io.BytesIO, box: nacl.public.Box, timeout: int = 60
                 ) -> Packetizeable:
+    """Return a received, decrypted, and assembled packet.
+
+    If a packet cannot be found in the data the data is returned unassembled.
+    If no data is received a `EmptyPacket` is returned.
+
+    Raises:
+        json.JSONDecodeError: When data is received but isn't decodable as
+            JSON.
+    """
     lines = []
     data = None
-    for line in _readlines(rfile, box, timeout):
+    for line in _read_until_ETB(rfile, box, timeout):
         if line is None:
             continue
         lines.append(line)

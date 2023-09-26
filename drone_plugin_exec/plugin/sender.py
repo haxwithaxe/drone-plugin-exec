@@ -1,3 +1,4 @@
+"""The client part of the plugin."""
 
 import io
 import socket
@@ -14,8 +15,9 @@ from .config import PluginConfig
 
 
 class Client:
+    """The client class that sends scripts to the target."""
 
-    def __init__(self, config: PluginConfig):
+    def __init__(self, config: PluginConfig):  # noqa: D107
         self._config = config
         self._privkey = keys.privkey(config.plugin_privkey)
         self._target_pubkey = keys.pubkey(config.target_pubkey)
@@ -35,18 +37,22 @@ class Client:
             self._sock.connect((self._config.address, self._config.port))
         self._rfile = self._sock.makefile('rb')
         self._wfile = self._sock.makefile('wb')
+        return self
 
     def __exit__(self, *args):
         log.debug('Exiting Client context')
         self._sock.close()
 
     def send(self, data: Packetizeable):
+        """Send data to the target."""
         packetize(self._wfile, self._box, data)
 
     def receive(self, timeout: int = 60) -> Packetizeable:
+        """Receive data from the target."""
         return depacketize(self._rfile, self._box, timeout)
 
-    def send_script(self, context: Context):
+    def send_script(self, context: Context) -> Context:
+        """Send a `Context` with script to be executed to the target."""
         log.debug('send_script start: %s', context.script)
         context.action = Action.SCRIPT
         self.send(context)
@@ -57,6 +63,7 @@ class Client:
 
     def handle_output(self, context: Context, timeout: int = 60,
                       receive_timeout: int = 60):
+        """Wait for responses from the target and handle them as needed."""
         start_time = datetime.now()
         log_every = log_every_factory(LogLevel.DEBUG)
         combined_output = []

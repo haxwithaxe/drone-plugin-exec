@@ -1,3 +1,4 @@
+"""Utilities for managing the script environment."""
 
 import os
 import pathlib
@@ -14,6 +15,7 @@ from .config import TargetConfig
 
 
 def setup(config: TargetConfig, context: Context) -> Context:
+    """Setup the runtime environment for the script."""  # noqa: D401
     log.debug('Setup running environment: %s', config.tmp_path_root)
     if not context.tmp_path:
         context.tmp_path = pathlib.Path(tempfile.mkdtemp(
@@ -46,6 +48,7 @@ def setup(config: TargetConfig, context: Context) -> Context:
 
 
 def checkout(context: Context):
+    """Checkout the git repo."""
     log.info('Checkout the repo %s to %s', context.repo_url, context.repo_path)
     repo = git.Repo.clone_from(context.repo_url, context.repo_path)
     repo.index.reset(context.commit)
@@ -55,6 +58,7 @@ def checkout(context: Context):
 
 
 def teardown(config: TargetConfig, context: Context):
+    """Teardown the runtime environment for the script."""
     # Verify the path given is in the configured tmp path root
     assert context.tmp_path.absolute().is_relative_to(config.tmp_path_root)
     shutil.rmtree(context.tmp_path)
@@ -62,6 +66,7 @@ def teardown(config: TargetConfig, context: Context):
 
 @contextmanager
 def script_environmant(config: TargetConfig, context: Context):
+    """Manage the runtime environment for the script."""
     context = setup(config, context)
     with suppress(Exception):
         yield context
@@ -73,9 +78,9 @@ def script_environmant(config: TargetConfig, context: Context):
 
 @contextmanager
 def working_dir(path: pathlib.Path):
+    """Manage the current working directory."""
     original_dir = os.curdir
     os.chdir(path)
-    try:
+    with suppress(Exception):
         yield path
-    finally:
-        os.chdir(original_dir)
+    os.chdir(original_dir)

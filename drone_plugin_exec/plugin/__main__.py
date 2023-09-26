@@ -1,3 +1,4 @@
+# noqa: D100
 
 import base64
 import logging
@@ -12,6 +13,7 @@ from .config import PluginConfig, RepoType
 
 
 def main():
+    """The entrypoint for the plugin."""  # noqa: D401
     log.setLevel(getattr(logging, os.environ.get('PLUGIN_LOG_LEVEL', 'ERROR')))
     config = PluginConfig.from_env(os.environ)
     log.debug('main: config: %s', config)

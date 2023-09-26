@@ -1,8 +1,10 @@
+"""Logging utilities."""
 
 import contextlib
 import enum
 import logging
 from datetime import datetime
+from typing import Union
 
 
 class LogLevel(enum.Enum):
@@ -15,7 +17,8 @@ class LogLevel(enum.Enum):
     CRITICAL = 'CRITICAL'
 
     @classmethod
-    def cast(cls, level) -> 'LogLevel':
+    def cast(cls, level: Union[int, str, 'LogLevel']) -> 'LogLevel':
+        """Cast a log level representation to a `LogLevel`."""
         if isinstance(level, cls):
             return cls
         if isinstance(level, int):
@@ -28,9 +31,11 @@ class LogLevel(enum.Enum):
         raise ValueError(f'Invalid `LogLevel` "{level}"')
 
     def __int__(self) -> int:
+        """Return a `logging` log level equivalent."""
         return getattr(logging, self.value)
 
     def __str__(self) -> str:
+        """Return a string equivalent."""
         return self.value
 
 
@@ -41,7 +46,7 @@ log = logging.getLogger(name='drone-exec-plugin')
 class _Tick:
     """A stateful object for tracking tick/tock mode."""
 
-    def __init__(self):
+    def __init__(self):  # noqa: 105
         self._tock = False
 
     def tick(self):
@@ -53,6 +58,7 @@ class _Tick:
         self._tock = True
 
     def __bool__(self) -> bool:
+        """Return `True` if this is in "tick" mode."""
         return not self._tock
 
 

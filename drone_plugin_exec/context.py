@@ -1,3 +1,4 @@
+"""A common context state."""
 
 import enum
 import pathlib
@@ -10,6 +11,7 @@ from .script import Script
 
 
 class Action(enum.Enum):
+    """Selection of actions the context is being sent to communicate/preform."""
 
     SCRIPT = 'script'
     ERROR = 'error'
@@ -19,6 +21,7 @@ class Action(enum.Enum):
 
 @dataclass
 class Context(Packetizeable):
+    """A common context between the target and plugin."""
 
     action: Union[Action, str]
     checkout: bool = True
@@ -34,13 +37,9 @@ class Context(Packetizeable):
     tmp_path: pathlib.Path = None
     type: str = None
 
-    def mod_copy(self, **kwargs) -> 'Context':
-        dehydrated = dict(self)
-        dehydrated.update(kwargs)
-        return self.__class__(**dehydrated)
-
     @classmethod
     def isinstance(cls, other: Any) -> bool:
+        """Return `True` if `other` is a `Context` dehydrated or not."""
         if isinstance(other, cls):
             return True
         if isinstance(other, dict):
@@ -60,6 +59,7 @@ class Context(Packetizeable):
             self.tmp_path = pathlib.Path(self.tmp_path)
 
     def __iter__(self):
+        """Return an iterator ready to be turned into a dict for json."""
         copy = dict(super().__iter__())
         if isinstance(self.action, Action):
             copy['action'] = self.action.value
@@ -75,12 +75,14 @@ class Context(Packetizeable):
         return iter(copy.items())
 
     def __repr__(self):
+        """Return a comprehensive single line string representation."""
         string = [f'<{self.__class__.__name__} ']
         for key, value in dict(self).items():
             string.append(f'{key}={value}, ')
-        return ''.join(string)
+        return ''.join(string).replace('\n', '\\n')
 
     def __str__(self):
+        """Return a human-friendly string representation."""
         string = [self.__class__.__name__]
         for key, value in dict(self).items():
             if key == 'script':

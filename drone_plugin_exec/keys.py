@@ -1,3 +1,4 @@
+"""Utilities for managing NaCl keys."""
 
 import base64
 import pathlib
@@ -10,6 +11,7 @@ _app = typer.Typer()
 
 
 def text_to_bytes(text: Union[str, bytes]) -> bytes:
+    """Convert text to bytes and decode base64 if needed."""
     if not isinstance(text, bytes):
         text = text.encode()
     if text.startswith(b'base64:'):
@@ -19,17 +21,20 @@ def text_to_bytes(text: Union[str, bytes]) -> bytes:
 
 
 def privkey(text: Union[str, bytes, pathlib.Path]) -> PrivateKey:
+    """Load a private key."""
     if isinstance(text, pathlib.Path):
         text = text.read_bytes()
     return PrivateKey(text_to_bytes(text))
 
 
 def pubkey(text: Union[str, bytes]) -> PublicKey:
+    """Load a public key."""
     return PublicKey(text_to_bytes(text))
 
 
 @_app.command()
 def _generate_keypair(output_path: pathlib.Path = typer.Option('./key')):
+    """Generate a NaCl key pair each base64 encoded."""
     keypair = PrivateKey.generate()
     privkey_bytes = keypair.encode()
     privkey_base64 = base64.encodebytes(privkey_bytes)

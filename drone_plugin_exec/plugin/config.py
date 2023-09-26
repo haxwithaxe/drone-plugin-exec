@@ -1,3 +1,4 @@
+"""The plugin configuration."""
 
 import socket
 import struct
@@ -22,6 +23,7 @@ def _get_default_gateway():
 
 @dataclass
 class PluginConfig(Config):
+    """The plugin configuration class."""
 
     checkout: bool = True
     env: dict = field(default_factory=dict)
@@ -59,7 +61,8 @@ class PluginConfig(Config):
             self.umask = int(self.umask)
 
     @classmethod
-    def from_env(cls, env):
+    def from_env(cls, env: dict) -> 'PluginConfig':
+        """Load the config from a `dict` of environmental variables."""
         plugin_privkey = env.pop('PLUGIN_PRIVKEY')
         env['PLUGIN_PRIVKEY'] = '-PLUGIN_PRIVKEY-redacted-'
         default_tmp_path = (f'{env["DRONE_REPO"]}-{env["DRONE_COMMIT"][:8]}-'

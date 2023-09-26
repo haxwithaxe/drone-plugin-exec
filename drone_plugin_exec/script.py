@@ -1,3 +1,4 @@
+"""Script utilities and  representations."""
 
 import base64
 import io
@@ -11,7 +12,8 @@ from .log import log
 from .packet import Packetizeable, PacketTypes
 
 
-def _debase64(encoded: str):
+def _debase64(encoded: str) -> str:
+    """Coerce a possibly base64 encoded string into plain text."""
     if not encoded:
         return encoded
     plain_text = base64.decodebytes(encoded.strip().encode()).decode()
@@ -20,7 +22,8 @@ def _debase64(encoded: str):
     return deescaped
 
 
-def _to_str(text: Union[bytes, str]):
+def _to_str(text: Union[bytes, str]) -> str:
+    """Coerce bytes or a string to a string."""
     if isinstance(text, bytes):
         return text.decode()
     return text
@@ -28,6 +31,7 @@ def _to_str(text: Union[bytes, str]):
 
 @dataclass
 class Line(Packetizeable):
+    """An output line base class."""
 
     line: bytes
     script_id: str
@@ -35,15 +39,18 @@ class Line(Packetizeable):
     type: str = None
 
     def print(self):
+        """Write the text of this line to the appropriate output."""
         if self.line:
             self._output.writelines(self.line)
             if hasattr(self._output, 'flush'):
                 self._output.flush()
 
     def __bool__(self) -> bool:
+        """Mimic the effect of `bool` on the text of the line."""
         return bool(self.line)
 
     def __iter__(self):
+        """Return an iterator ready to be turned into a `dict` for json."""
         copy = dict(super().__iter__())
         copy.pop('_output')
         copy['line'] = self.line.decode()
@@ -51,6 +58,7 @@ class Line(Packetizeable):
 
 
 class StdOut(Line):
+    """A line of stdout from the script."""
 
     _output = sys.stdout
 
@@ -59,6 +67,7 @@ PacketTypes.register_packet_type(StdOut)
 
 
 class StdErr(Line):
+    """A line of stderr from the script."""
 
     _output = sys.stderr
 
@@ -68,6 +77,7 @@ PacketTypes.register_packet_type(StdErr)
 
 @dataclass
 class Script:
+    """A representation of the script to run."""
 
     body: str
     env: dict = field(default_factory=dict)
@@ -83,19 +93,14 @@ class Script:
     working_dir: pathlib.Path = None
 
     def append_output(self, stdout: list[bytes], stderr: list[bytes]):
+        """Append to stdout and stderr in unison."""
         if stdout:
             self.stdout.extend(stdout)
         if stderr:
             self.stderr.extend(stderr)
 
-    def ingest_result(self, script_result: 'Script'):
-        if script_result.id != self.id:
-            raise ValueError('Script.id does not match')
-        self.exit_code = script_result.exit_code
-        self.stdout = script_result.stdout
-        self.stderr = script_result.stderr
-
-    def to_file(self):
+    def to_file(self) -> pathlib.Path:
+        """Write this script to a file."""
         if not self.script_path:
             self.script_path = self.tmp_path.joinpath(f'script-{self.id}.sh')
         plain_text_body = _debase64(self.body)
@@ -132,6 +137,7 @@ class Script:
         return ''.join(string)
 
     def __str__(self):
+        """Return a  human-friendly representation of this object."""
         body = _debase64(self.body)
         if body and len(body) > 50:
             body = '\\n'.join(body.split('\n'))

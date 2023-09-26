@@ -1,3 +1,4 @@
+"""Target configuration utilities and representation."""
 
 import pathlib
 from dataclasses import dataclass
@@ -15,6 +16,7 @@ from ..log import log
 
 @dataclass
 class TargetConfig(Config):
+    """The config for target side of the plugin."""
 
     plugin_pubkey: bytes = None
     target_privkey_path: pathlib.Path = None
@@ -48,7 +50,8 @@ class TargetConfig(Config):
                  self.address, self.docker_network)
 
     @classmethod
-    def from_path(cls, config_path: pathlib.Path):
+    def from_path(cls, config_path: pathlib.Path) -> 'TargetConfig':
+        """Load the config from a toml file."""
         log.info('Loading config from "%s"', config_path)
         config = tomllib.loads(config_path.read_text())
         return cls(
