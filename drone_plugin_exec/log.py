@@ -1,7 +1,7 @@
 
-from datetime import datetime
 import enum
 import logging
+from datetime import datetime
 
 
 class LogLevel(enum.Enum):

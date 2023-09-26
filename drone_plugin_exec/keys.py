@@ -3,9 +3,8 @@ import base64
 import pathlib
 from typing import Union
 
-from nacl.public import PrivateKey, PublicKey
 import typer
-
+from nacl.public import PrivateKey, PublicKey
 
 _app = typer.Typer()
 

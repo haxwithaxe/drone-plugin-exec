@@ -1,11 +1,10 @@
 
-from dataclasses import dataclass, field
 import socket
 import struct
+from dataclasses import dataclass, field
 from typing import Union
 
 import nacl.public
-
 
 from ..config import Config, ConfigError, RepoType, Teardown
 

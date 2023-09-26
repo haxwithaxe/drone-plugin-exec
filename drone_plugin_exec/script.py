@@ -1,11 +1,11 @@
 
 import base64
-from dataclasses import dataclass, field
 import io
 import pathlib
 import sys
-from typing import Union
 import uuid
+from dataclasses import dataclass, field
+from typing import Union
 
 from .log import log
 from .packet import Packetizeable, PacketTypes

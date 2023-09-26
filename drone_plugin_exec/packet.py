@@ -1,13 +1,12 @@
 
-from datetime import datetime
 import io
 import json
 import time
+from datetime import datetime
 
 import nacl.public
 
 from .log import log
-
 
 STOP_BYTES = b'\0\0\0\23\23\23\0\0\0'
 _STOP_BUFFER = [chr(b).encode() for b in list(STOP_BYTES)]

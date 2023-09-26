@@ -1,16 +1,16 @@
 
-from contextlib import contextmanager
 import os
 import pathlib
 import shutil
 import tempfile
+from contextlib import contextmanager
 
 import git
 
-from .config import TargetConfig
 from ..config import ConfigError, Teardown
 from ..context import Context
 from ..log import log
+from .config import TargetConfig
 
 
 def setup(config: TargetConfig, context: Context) -> Context:

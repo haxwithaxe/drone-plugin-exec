@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 
-from ..context import Context, Action
+from ..context import Action, Context
 from ..log import log
 from ..script import Script
 from . import sender
@@ -39,9 +39,7 @@ def main():
     with runner:
         received_context = runner.send_script(context)
     if received_context.error:
-        print('context.error is True', received_context.message, file=sys.stderr)
-        if received_context.script.exit_code not in (0, None):
-            sys.exit(received_context.script.exit_code)
+        log.error('Remote error: %s', received_context.message)
         sys.exit(1)
     log.info('Success: %s', received_context.message or script.id)
 

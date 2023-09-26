@@ -1,8 +1,7 @@
 
-from dataclasses import dataclass
 import enum
 import pathlib
-import tempfile
+from dataclasses import dataclass
 from typing import Any, Union
 
 from .config import Teardown

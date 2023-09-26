@@ -1,16 +1,16 @@
 
-from datetime import datetime
 import io
 import socket
+from datetime import datetime
 
 import nacl.public
 
-from .config import PluginConfig
-from ..context import Action, Context
 from .. import keys
-from ..packet import depacketize, EmptyPacket, packetize, Packetizeable
-from ..log import log, log_every_factory, LogLevel
+from ..context import Action, Context
+from ..log import LogLevel, log, log_every_factory
+from ..packet import EmptyPacket, Packetizeable, depacketize, packetize
 from ..script import StdErr, StdOut
+from .config import PluginConfig
 
 
 class Client:

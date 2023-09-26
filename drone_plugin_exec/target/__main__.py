@@ -3,10 +3,9 @@ import pathlib
 
 import typer
 
+from ..log import LogLevel, log
 from . import daemon
 from .config import TargetConfig
-from ..log import log, LogLevel
-
 
 app = typer.Typer()
 
