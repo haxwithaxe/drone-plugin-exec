@@ -9,7 +9,8 @@ import nacl.public
 from .log import log
 
 
-STOP_BYTES = b'\0\0\0EOM\0\0\0'
+STOP_BYTES = b'\0\0\0\23\23\23\0\0\0'
+_STOP_BUFFER = [chr(b).encode() for b in list(STOP_BYTES)]
 
 
 class Packetizeable:
@@ -48,19 +49,28 @@ class PacketTypes:
 def packetize(wfile: io.BytesIO, box: nacl.public.Box, data: Packetizeable):
     log.debug('packetize: data: %s', dict(data))
     data = data.to_json()
-    # data = box.encrypt(data)
-    wfile.writelines([data, b'\n', STOP_BYTES, b'\n'])
+    data = box.encrypt(data)
+    sent_bytes = wfile.write(data)
+    sent_bytes += wfile.write(STOP_BYTES)
     wfile.flush()
+    log.debug('sent bytes: %s', sent_bytes)
 
 
 def _readlines(rfile: io.BytesIO, box: nacl.public.Box, timeout: int = 60):
     start_time = datetime.now()
     while True:
-        for line in rfile:
-            if line and line.strip() == STOP_BYTES:
-                return
-            yield line
-            if (start_time - datetime).seconds > timeout:
+        stop_buffer = []
+        data = []
+        while byte := rfile.read(1):
+            stop_buffer.append(byte)
+            if len(stop_buffer) > len(STOP_BYTES):
+                data.append(stop_buffer.pop(0))
+            if stop_buffer == _STOP_BUFFER:
+                stop_buffer = []
+                payload = b''.join(data)
+                data = []
+                yield box.decrypt(payload)
+            if timeout and (datetime.now() - start_time).seconds > timeout:
                 raise TimeoutError()
         time.sleep(0.01)
 
@@ -82,9 +92,9 @@ def depacketize(rfile: io.BytesIO, box: nacl.public.Box, timeout: int = 60
         return EmptyPacket()
     if not data:
         log.error('Failed to decode json from:\n%s',
-                  b'\n'.join(lines).decode())
+                  b'\n'.join(lines).decode(errors='ignore'))
         # Raise a useful exception
-        json.loads(b''.join(lines))
+        json.loads(box.decrypt(b''.join(lines)))
         assert False, 'The above json.loads succeeded but it shouldn\'t have.'
     for cls in PacketTypes.types:
         if cls.isinstance(data):
