@@ -1,7 +1,5 @@
 
-from contextlib import contextmanager
 import io
-import os
 import pathlib
 import socketserver
 import subprocess
@@ -9,17 +7,17 @@ import time
 
 import nacl.public
 
+from .. import keys
+from ..context import Action, Context
+from ..log import log
+from ..packet import depacketize, packetize
+from ..script import Script, StdErr, StdOut
 from .config import TargetConfig
 from .environment import script_environmant, working_dir
-from ..context import Action, Context
-from .. import keys
-from ..packet import depacketize, packetize
-from ..log import log
-from ..script import Script, StdErr, StdOut
 
 
 class RequestHandler(socketserver.ForkingMixIn,
-                         socketserver.StreamRequestHandler):
+                     socketserver.StreamRequestHandler):
 
     def handle(self):
         self._config.tmp_path_root.mkdir(exist_ok=True)
@@ -66,7 +64,8 @@ class RequestHandler(socketserver.ForkingMixIn,
             err_lines = stderr.readlines()
             if not out_lines and not err_lines:
                 break
-            log.debug('send_output: stdout: %s, stderr: %s', out_lines, err_lines)
+            log.debug('send_output: stdout: %s, stderr: %s', out_lines,
+                      err_lines)
             script.append_output(out_lines, err_lines)
             if out_lines is not None:
                 self.send(StdOut(b''.join(out_lines), script.id))
