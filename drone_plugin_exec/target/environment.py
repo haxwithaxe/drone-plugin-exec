@@ -3,7 +3,7 @@ import os
 import pathlib
 import shutil
 import tempfile
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 
 import git
 
@@ -63,13 +63,12 @@ def teardown(config: TargetConfig, context: Context):
 @contextmanager
 def script_environmant(config: TargetConfig, context: Context):
     context = setup(config, context)
-    try:
+    with suppress(Exception):
         yield context
-    finally:
-        if config.teardown == Teardown.NEVER:
-            return
-        if config.teardown == Teardown.ALWAYS or not context.error:
-            teardown(config, context)
+    if config.teardown == Teardown.NEVER:
+        return
+    if config.teardown == Teardown.ALWAYS or not context.error:
+        teardown(config, context)
 
 
 @contextmanager

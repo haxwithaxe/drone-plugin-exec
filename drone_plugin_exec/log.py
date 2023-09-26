@@ -1,4 +1,5 @@
 
+import contextlib
 import enum
 import logging
 from datetime import datetime
@@ -22,10 +23,8 @@ class LogLevel(enum.Enum):
                 if getattr(logging, level_enum.value) == level:
                     return level_enum
         if isinstance(level, str):
-            try:
+            with contextlib.suppress(AttributeError):
                 return cls(level)
-            except AttributeError:
-                pass
         raise ValueError(f'Invalid `LogLevel` "{level}"')
 
     def __int__(self) -> int:

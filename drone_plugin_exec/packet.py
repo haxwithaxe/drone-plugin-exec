@@ -94,7 +94,8 @@ def depacketize(rfile: io.BytesIO, box: nacl.public.Box, timeout: int = 60
                   b'\n'.join(lines).decode(errors='ignore'))
         # Raise a useful exception
         json.loads(box.decrypt(b''.join(lines)))
-        assert False, 'The above json.loads succeeded but it shouldn\'t have.'
+        raise AssertionError('The above json.loads succeeded but it '
+                             'shouldn\'t have.')
     for cls in PacketTypes.types:
         if cls.isinstance(data):
             return cls(**data)

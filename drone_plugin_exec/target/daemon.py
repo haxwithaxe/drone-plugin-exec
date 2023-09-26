@@ -30,9 +30,9 @@ class RequestHandler(socketserver.ForkingMixIn,
         if context.action == Action.SCRIPT:
             log.info('Got script: %s\n\n', context.script)
             try:
-                with script_environmant(self._config, context) as context:
-                    with working_dir(context.script.working_dir):
-                        self.run_script(context.script, context)
+                with script_environmant(self._config, context) as context, \
+                        working_dir(context.script.working_dir):
+                    self.run_script(context.script, context)
             except Exception as err:
                 context.action = Action.ERROR
                 context.error = True

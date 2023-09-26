@@ -69,11 +69,7 @@ class Client:
             log.debug('handle_output: Got data: %s', data)
             if not data:
                 continue
-            if isinstance(data, StdOut):
-                assert data.script_id == context.script.id
-                combined_output.append(data.line)
-                data.print()
-            elif isinstance(data, StdErr):
+            if isinstance(data, (StdOut, StdErr)):
                 assert data.script_id == context.script.id
                 combined_output.append(data.line)
                 data.print()
